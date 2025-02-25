@@ -1,6 +1,6 @@
 # home-credit-default-risk
 
-Gradient boosting learning project. The dataset is from the 2018 Kaggle competition [_Home Credit Default Risk_](https://www.kaggle.com/c/home-credit-default-risk/), predicting the probability of a client defaulting on a loan.
+A learning project about gradient boosting using LightGBM and XGBoost. The dataset is from the 2018 Kaggle competition [_Home Credit Default Risk_](https://www.kaggle.com/c/home-credit-default-risk/), predicting the probability of a client defaulting on a loan.
 
 **`data_prep.py`:**
 - contains functions for data preprocessing
