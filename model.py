@@ -61,6 +61,8 @@ def model_xgboost(train_df, test_df, n_splits):
             
         # Compute AUC
         print(f'AUC score {roc_auc_score(train_df["TARGET"], out_of_fold_predictions):.6f}')
+
+        return(test_df_predictions)
     else:
         train, valid = train_test_split(train_df, test_size=0.2, random_state=12345)
         train_x, train_y = train[feats], train['TARGET']
@@ -92,11 +94,15 @@ def model_xgboost(train_df, test_df, n_splits):
         )
 
         # Make predictions
-        out_of_fold_predictions = classifier.predict_proba(valid_x, iteration_range=(0, classifier.best_iteration))[:, 1]
-        print(f'AUC: {roc_auc_score(valid_y, out_of_fold_predictions[valid_idx]):.6f}')
+        preds = classifier.predict_proba(valid_x, iteration_range=(0, classifier.best_iteration))[:, 1]
+        print(f'AUC: {roc_auc_score(valid_y, preds):.6f}')
+
+        test_df_predictions = classifier.predict_proba(test_df[feats])[:, 1]
 
         del classifier, train_x, train_y, valid_x, valid_y
         gc.collect()
+
+        return test_df_predictions
 
 
 
@@ -155,6 +161,8 @@ def model_lightgbm(train_df, test_df, n_splits):
 
         # Compute AUC
         print(f'AUC score {roc_auc_score(train_df["TARGET"], out_of_fold_predictions):.6f}')
+
+        return(test_df_predictions)
     else:
         train, valid = train_test_split(train_df, test_size=0.2, random_state=12345)
         train_x, train_y = train[feats], train['TARGET']
@@ -189,8 +197,12 @@ def model_lightgbm(train_df, test_df, n_splits):
         preds = classifier.predict_proba(valid_x)[:, 1]
         print(f'AUC on validation set: {roc_auc_score(valid_y, preds):.6f}')
 
+        test_df_predictions = classifier.predict_proba(test_df[feats])[:, 1]
+
         del classifier, train_x, train_y, valid_x, valid_y
         gc.collect()
+
+        return(test_df_predictions)
 
 
 
@@ -268,17 +280,19 @@ def main():
     print(test_df.shape)
     print()
     
-    #train_df = train_df.sample(frac=0.1, random_state=12345)
+    train_df = train_df.sample(frac=0.1, random_state=12345)
     gc.collect()
 
     # k-fold cross-validation. n_splits = 1 for no cross-validation, train-test split 80:20
-    n_splits = 5
+    n_splits = 1
 
     # XGBoost (slow):
-    #model_xgboost(train_df, test_df, n_splits)
+    #test_df["TARGET"] = model_xgboost(train_df, test_df, n_splits)
+    #test_df[["SK_ID_CURR", "TARGET"]].to_csv("submission.csv", index=False)
 
     # LightGBM (fast):
-    model_lightgbm(train_df, test_df, n_splits)
+    test_df["TARGET"] = model_lightgbm(train_df, test_df, n_splits)
+    test_df[["SK_ID_CURR", "TARGET"]].to_csv("submission.csv", index=False)
 
 if __name__ == "__main__":
     main()
