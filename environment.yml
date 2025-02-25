@@ -1,0 +1,10 @@
+# conda env create -f environment.yml
+
+name: hcdr-env
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - scikit-learn
+  - xgboost=2
+  - lightgbm=4
