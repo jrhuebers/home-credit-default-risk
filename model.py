@@ -5,10 +5,10 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 import xgboost as xgb
 import lightgbm as lgb
-from data_prep import prepare_application_df, prepare_previous_application_df, prepare_bureau_and_bureau_balance_df, prepare_credit_card_balance_df, prepare_installments_payments_df, prepare_POS_CASH_balance_df
+from data_prep import prepare_joined_df
 
 
-def model_xgboost(train_df, test_df, n_splits):
+def model_xgboost(train_df, test_df, params, n_splits):
     print(f"Starting XGBoost. Train shape: {train_df.shape}, test shape: {test_df.shape}")
 
     # Cross-validation folds. If n_splits = 1, use the whole dataset
@@ -27,14 +27,7 @@ def model_xgboost(train_df, test_df, n_splits):
             valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['TARGET'].iloc[valid_idx]
 
             classifier = xgb.XGBClassifier(
-                n_estimators=200,       #set lower than for model_lightgbm
-                learning_rate=0.02,
-                max_depth=8,
-                reg_alpha=0.041545473,
-                reg_lambda=0.0735294,
-                min_child_weight=39.3259775,
-                subsample=0.8715623,
-                colsample_bytree=0.9497036,
+                **params,
                 tree_method="hist",  # Use for efficiency
                 verbosity=0,
                 early_stopping_rounds=40,  # Stops if validation AUC stops improving, set lower than for model_lightgbm
@@ -70,14 +63,7 @@ def model_xgboost(train_df, test_df, n_splits):
 
 
         classifier = xgb.XGBClassifier(
-            n_estimators=1000,
-            learning_rate=0.02,
-            max_depth=8,
-            reg_alpha=0.041545473,
-            reg_lambda=0.0735294,
-            min_child_weight=39.3259775,
-            subsample=0.8715623,
-            colsample_bytree=0.9497036,
+            **params,
             tree_method="hist",  # Use for efficiency
             verbosity=0,
             early_stopping_rounds=200,  # Stops if validation AUC stops improving
@@ -106,7 +92,7 @@ def model_xgboost(train_df, test_df, n_splits):
 
 
 
-def model_lightgbm(train_df, test_df, n_splits):
+def model_lightgbm(train_df, test_df, params, n_splits):
     print(f"Starting LightGBM. Train shape: {train_df.shape}, test shape: {test_df.shape}")
 
     # Cross-validation folds. If n_splits = 1, use the whole dataset
@@ -125,14 +111,7 @@ def model_lightgbm(train_df, test_df, n_splits):
             valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['TARGET'].iloc[valid_idx]
 
             classifier = lgb.LGBMClassifier(
-                n_estimators=1000,
-                learning_rate=0.02,
-                max_depth=8,
-                reg_alpha=0.041545473,
-                reg_lambda=0.0735294,
-                min_child_weight=39.3259775,
-                subsample=0.8715623,
-                colsample_bytree=0.9497036,
+                **params,
                 boosting_type="gbdt",
                 objective="binary",
                 metric="auc",
@@ -169,14 +148,7 @@ def model_lightgbm(train_df, test_df, n_splits):
         valid_x, valid_y = valid[feats], valid['TARGET']
 
         classifier = lgb.LGBMClassifier(
-            n_estimators=1000,
-            learning_rate=0.02,
-            max_depth=8,
-            reg_alpha=0.041545473,
-            reg_lambda=0.0735294,
-            min_child_weight=39.3259775,
-            subsample=0.8715623,
-            colsample_bytree=0.9497036,
+            **params,
             boosting_type="gbdt",
             objective="binary",
             metric="auc",
@@ -205,93 +177,31 @@ def model_lightgbm(train_df, test_df, n_splits):
         return(test_df_predictions)
 
 
-
-
 def main():
-    train_df = prepare_application_df(train_or_test = "train")
-    test_df = prepare_application_df(train_or_test = "test")
-
-    print()
-    print("train_df:")
-    print(train_df.shape)
-    print()
-    print("test_df:")
-    print(test_df.shape)
-    print()
-
-    # merge with bureau_and_bureau_balance_df
-    bureau_and_bureau_balance_df = prepare_bureau_and_bureau_balance_df()
-    print("bureau_and_bureau_balance_df:")
-    print(bureau_and_bureau_balance_df.shape)
-    print()
-    train_df = train_df.merge(bureau_and_bureau_balance_df, on='SK_ID_CURR', how='left')
-    test_df = test_df.merge(bureau_and_bureau_balance_df, on='SK_ID_CURR', how='left')
-    del bureau_and_bureau_balance_df
-    gc.collect()
-
-    # merge with previous_application_df
-    previous_application_df = prepare_previous_application_df()
-    print("previous_application_df:")
-    print(previous_application_df.shape)
-    print()
-    train_df = train_df.merge(previous_application_df, on='SK_ID_CURR', how='left')
-    test_df = test_df.merge(previous_application_df, on='SK_ID_CURR', how='left')
-    del previous_application_df
-    gc.collect()
-
-    # merge with installments_payments_df
-    installments_payments_df = prepare_installments_payments_df()
-    print("installments_payments_df:")
-    print(installments_payments_df.shape)
-    print()
-    train_df = train_df.merge(installments_payments_df, on='SK_ID_CURR', how='left')
-    test_df = test_df.merge(installments_payments_df, on='SK_ID_CURR', how='left')
-    del installments_payments_df
-    gc.collect()
-
-    # merge with POS_CASH_balance_df
-    POS_CASH_balance_df = prepare_POS_CASH_balance_df()
-    print("POS_CASH_balance_df:")
-    print(POS_CASH_balance_df.shape)
-    print()
-    train_df = train_df.merge(POS_CASH_balance_df, on='SK_ID_CURR', how='left')
-    test_df = test_df.merge(POS_CASH_balance_df, on='SK_ID_CURR', how='left')
-    del POS_CASH_balance_df
-    gc.collect()
-
-    # merge with credit_card_balance_df
-    credit_card_balance_df = prepare_credit_card_balance_df()
-    print("credit_card_balance_df:")
-    print(credit_card_balance_df.shape)
-    print()
-    train_df = train_df.merge(credit_card_balance_df, on='SK_ID_CURR', how='left')
-    test_df = test_df.merge(credit_card_balance_df, on='SK_ID_CURR', how='left')
-    del credit_card_balance_df
-    gc.collect()
-
-    # Replace special characters (in particular spaces) in column names
-    train_df.columns = train_df.columns.str.replace(r'[^a-zA-Z0-9_]', '_', regex=True)
-    test_df.columns = test_df.columns.str.replace(r'[^a-zA-Z0-9_]', '_', regex=True)
-
-    print("train_df:")
-    print(train_df.shape)
-    print()
-    print("test_df:")
-    print(test_df.shape)
-    print()
-    
+    train_df, test_df = prepare_joined_df()
     train_df = train_df.sample(frac=0.1, random_state=12345)
     gc.collect()
 
     # k-fold cross-validation. n_splits = 1 for no cross-validation, train-test split 80:20
     n_splits = 1
 
+    params = {
+        "n_estimators": 1000,
+        "learning_rate": 0.02,
+        "max_depth": 8,
+        "reg_alpha": 0.041545473,
+        "reg_lambda": 0.0735294,
+        "min_child_weight": 39.3259775,
+        "subsample": 0.8715623,
+        "colsample_bytree": 0.9497036,
+    }
+
     # XGBoost (slow):
-    #test_df["TARGET"] = model_xgboost(train_df, test_df, n_splits)
+    #test_df["TARGET"] = model_xgboost(train_df, test_df, params, n_splits)
     #test_df[["SK_ID_CURR", "TARGET"]].to_csv("submission.csv", index=False)
 
     # LightGBM (fast):
-    test_df["TARGET"] = model_lightgbm(train_df, test_df, n_splits)
+    test_df["TARGET"] = model_lightgbm(train_df, test_df, params, n_splits)
     test_df[["SK_ID_CURR", "TARGET"]].to_csv("submission.csv", index=False)
 
 if __name__ == "__main__":

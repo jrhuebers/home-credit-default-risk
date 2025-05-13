@@ -271,6 +271,81 @@ def prepare_credit_card_balance_df():
 
 
 
+def prepare_joined_df():
+    train_df = prepare_application_df(train_or_test = "train")
+    test_df = prepare_application_df(train_or_test = "test")
+
+    print()
+    print("train_df:")
+    print(train_df.shape)
+    print()
+    print("test_df:")
+    print(test_df.shape)
+    print()
+
+    # merge with bureau_and_bureau_balance_df
+    bureau_and_bureau_balance_df = prepare_bureau_and_bureau_balance_df()
+    print("bureau_and_bureau_balance_df:")
+    print(bureau_and_bureau_balance_df.shape)
+    print()
+    train_df = train_df.merge(bureau_and_bureau_balance_df, on='SK_ID_CURR', how='left')
+    test_df = test_df.merge(bureau_and_bureau_balance_df, on='SK_ID_CURR', how='left')
+    del bureau_and_bureau_balance_df
+    gc.collect()
+
+    # merge with previous_application_df
+    previous_application_df = prepare_previous_application_df()
+    print("previous_application_df:")
+    print(previous_application_df.shape)
+    print()
+    train_df = train_df.merge(previous_application_df, on='SK_ID_CURR', how='left')
+    test_df = test_df.merge(previous_application_df, on='SK_ID_CURR', how='left')
+    del previous_application_df
+    gc.collect()
+
+    # merge with installments_payments_df
+    installments_payments_df = prepare_installments_payments_df()
+    print("installments_payments_df:")
+    print(installments_payments_df.shape)
+    print()
+    train_df = train_df.merge(installments_payments_df, on='SK_ID_CURR', how='left')
+    test_df = test_df.merge(installments_payments_df, on='SK_ID_CURR', how='left')
+    del installments_payments_df
+    gc.collect()
+
+    # merge with POS_CASH_balance_df
+    POS_CASH_balance_df = prepare_POS_CASH_balance_df()
+    print("POS_CASH_balance_df:")
+    print(POS_CASH_balance_df.shape)
+    print()
+    train_df = train_df.merge(POS_CASH_balance_df, on='SK_ID_CURR', how='left')
+    test_df = test_df.merge(POS_CASH_balance_df, on='SK_ID_CURR', how='left')
+    del POS_CASH_balance_df
+    gc.collect()
+
+    # merge with credit_card_balance_df
+    credit_card_balance_df = prepare_credit_card_balance_df()
+    print("credit_card_balance_df:")
+    print(credit_card_balance_df.shape)
+    print()
+    train_df = train_df.merge(credit_card_balance_df, on='SK_ID_CURR', how='left')
+    test_df = test_df.merge(credit_card_balance_df, on='SK_ID_CURR', how='left')
+    del credit_card_balance_df
+    gc.collect()
+
+    # Replace special characters (in particular spaces) in column names
+    train_df.columns = train_df.columns.str.replace(r'[^a-zA-Z0-9_]', '_', regex=True)
+    test_df.columns = test_df.columns.str.replace(r'[^a-zA-Z0-9_]', '_', regex=True)
+
+    print("train_df:")
+    print(train_df.shape)
+    print()
+    print("test_df:")
+    print(test_df.shape)
+    print()
+
+    return train_df, test_df
+
 
 
 def main():
