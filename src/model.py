@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
-import xgboost as xgb
+#import xgboost as xgb
 import lightgbm as lgb
 from data_prep import prepare_joined_df
+import optuna
 
 
 def model_xgboost(train_df, test_df, params, n_splits):
@@ -178,23 +179,23 @@ def model_lightgbm(train_df, test_df, params, n_splits):
 
 
 def main():
-    train_df, test_df = prepare_joined_df()
-    train_df = train_df.sample(frac=0.1, random_state=12345)
+    train_df = pd.read_csv("data/processed/train.csv")
+    #train_df = train_df.sample(frac=0.1, random_state=12345)
     gc.collect()
 
     # k-fold cross-validation. n_splits = 1 for no cross-validation, train-test split 80:20
     n_splits = 1
 
-    params = {
-        "n_estimators": 1000,
-        "learning_rate": 0.02,
-        "max_depth": 8,
-        "reg_alpha": 0.041545473,
-        "reg_lambda": 0.0735294,
-        "min_child_weight": 39.3259775,
-        "subsample": 0.8715623,
-        "colsample_bytree": 0.9497036,
-    }
+    params = {'n_estimators': 1000,
+        'learning_rate': 0.049742294234964776,
+        'max_depth': 6,
+        'reg_alpha': 0.012803654908664254,
+        'reg_lambda': 0.9945684681806212,
+        'min_child_weight': 43.09702067766131,
+        'subsample': 0.6574668923403894,
+        'colsample_bytree': 0.5565282153826815}
+
+    test_df = pd.read_csv("data/processed/test.csv")
 
     # XGBoost (slow):
     #test_df["TARGET"] = model_xgboost(train_df, test_df, params, n_splits)

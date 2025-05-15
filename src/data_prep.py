@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def prepare_application_df(train_or_test = "train"):
-    df = pd.read_csv('data/application_' + train_or_test + '.csv')
+    df = pd.read_csv('data/raw/application_' + train_or_test + '.csv')
     #print('\napplication_' + train_or_test + '_df')
     #print(df.shape)
 
@@ -36,8 +36,8 @@ def prepare_application_df(train_or_test = "train"):
 
 def prepare_bureau_and_bureau_balance_df():
     # primary key: SK_BUREAU_ID
-    df = pd.read_csv('data/bureau.csv')
-    bb_df = pd.read_csv('data/bureau_balance.csv')
+    df = pd.read_csv('data/raw/bureau.csv')
+    bb_df = pd.read_csv('data/raw/bureau_balance.csv')
     # These two tables are treated together because bureau_balance_df doesn't contain SK_ID_CURR.
     
     #print('\nbureau_and_bureau_balance_df')
@@ -108,7 +108,7 @@ def prepare_bureau_and_bureau_balance_df():
     return agg_df
 
 def prepare_previous_application_df():
-    df = pd.read_csv('data/previous_application.csv')
+    df = pd.read_csv('data/raw/previous_application.csv')
     #print('\nprevious_application_df')
     #print(df.shape)
     # primary key of previous_application_df is SK_ID_PREV rather than SK_ID_CURR
@@ -170,7 +170,7 @@ def prepare_POS_CASH_balance_df():
     #                           'CNT_INSTALMENT_FUTURE', 'SK_DPD', 'SK_DPD_DEF']
     # no primary key. df will be joined to application_train_test_df on SK_ID_CURR.
 
-    df = pd.read_csv('data/POS_CASH_balance.csv')
+    df = pd.read_csv('data/raw/POS_CASH_balance.csv')
     # print("\nPOS_CASH_balance_df")
     # print(df.shape)
 
@@ -205,7 +205,7 @@ def prepare_installments_payments_df():
     #                       'PAYMENT_FRAC', 'PAYMENT_DIFF', 'DPD', 'DBD']
     # no primary key. df will be joined to application_train_test_df on SK_ID_CURR.
 
-    df = pd.read_csv('data/installments_payments.csv')
+    df = pd.read_csv('data/raw/installments_payments.csv')
     # print("\ninstallments_payments_df")
     # print(df.shape)
 
@@ -248,7 +248,7 @@ def prepare_credit_card_balance_df():
     #       'CNT_INSTALMENT_MATURE_CUM', 'SK_DPD', 'SK_DPD_DEF']
     # no primary key. df will be joined to application_train_test_df on SK_ID_CURR.
 
-    df = pd.read_csv('data/credit_card_balance.csv')
+    df = pd.read_csv('data/raw/credit_card_balance.csv')
     #print("\ncredit_card_balance_df")
     #print(df.shape)
 
@@ -349,6 +349,7 @@ def prepare_joined_df():
 
 
 def main():
+    """
     application_train_df = prepare_application_df(train_or_test = "train")
     print("application_train_df")
     # print(application_train_df.head())
@@ -383,6 +384,11 @@ def main():
     print("credit_card_balance_df")
     # print(credit_card_balance_df.head())
     # credit_card_balance_df.info()
+    """
+
+    train_df, test_df = prepare_joined_df()
+    train_df.to_csv("data/processed/train.csv", index=False)
+    test_df.to_csv("data/processed/test.csv", index=False)
 
 if __name__ == '__main__':
     main()
