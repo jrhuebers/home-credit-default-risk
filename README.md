@@ -10,9 +10,12 @@ A learning project about gradient boosting using LightGBM and XGBoost. The datas
 - function `model_xgboost`: Implements k-fold cross-validated gradient boosting using XGBoost.
 - function `main`: Calls on the functions from data_prep.py to create the training and testing datasets, then uses either model_lightgbm or model_xgboost to train the model.
 
-The code heavily draws from public Kaggle kernels, especially in terms of feature engineering and choice of hyperparameters. Both `model_lightgbm` and `model_xgboost` can be run without k-fold cross-validation by setting `n_splits = 1`.
+**`param_optim.py`:**
+- script implementing Bayesian optimization of hyperparameters using Optuna
 
-For 5-fold cross-validated LightGBM the ROC-AUC score is 0.790376 with the hyperparameters specified in `model.py`.
+The code draws from public Kaggle kernels, especially in terms of feature engineering. Both `model_lightgbm` and `model_xgboost` can be run without k-fold cross-validation by setting `n_splits = 1`.
+
+For LightGBM the ROC-AUC score is 0.792057 with the hyperparameters specified in `model.py` (found with `param_optim.py`).
 
 ### E-R diagram of the data
 ![image](https://github.com/user-attachments/assets/4a078f5f-fd63-4880-8106-c6d5b41dd8b9)
